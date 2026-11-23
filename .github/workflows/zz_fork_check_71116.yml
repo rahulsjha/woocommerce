@@ -1,0 +1,38 @@
+name: fork-check-71116
+on:
+  push:
+    branches: [ci/71116]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      database:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    defaults:
+      run:
+        working-directory: plugins/woocommerce
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          extensions: mysql
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: sudo apt-get update && sudo apt-get install -y subversion
+      - name: Install the WordPress test library
+        run: bash tests/bin/install.sh wc_test root root 127.0.0.1 latest
+      - name: WC_Settings_Payment_Gateways_Test
+        run: set -o pipefail; ./vendor/bin/phpunit -c phpunit.xml --filter WC_Settings_Payment_Gateways_Test 2>&1 | tee test.log
+      - name: phpcs on the changed lines
+        if: always()
+        run: ./vendor/bin/phpcs-changed -s --git --git-base HEAD~2 includes/admin/settings/class-wc-settings-payment-gateways.php tests/php/includes/settings/class-wc-settings-payment-gateways-test.php
