@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 3
+          fetch-depth: 10
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -37,4 +37,4 @@ jobs:
         run: set -o pipefail; ./vendor/bin/phpunit -c phpunit.xml --filter WC_Settings_Payment_Gateways_Test 2>&1 | tee test.log
       - name: phpcs on the changed lines
         if: always()
-        run: ./vendor/bin/phpcs-changed -s --git --git-base HEAD~2 includes/admin/settings/class-wc-settings-payment-gateways.php tests/php/includes/settings/class-wc-settings-payment-gateways-test.php
+        run: ./vendor/bin/phpcs-changed -s --git --git-base 4e3522f includes/admin/settings/class-wc-settings-payment-gateways.php tests/php/includes/settings/class-wc-settings-payment-gateways-test.php
